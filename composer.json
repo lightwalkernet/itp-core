@@ -1,0 +1,49 @@
+{
+    "name": "lightwalkernet/itp-core",
+    "description": "Shared ITP models, migrations and sync registration. Device-safe.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.3",
+        "lightwalkernet/sync": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "Itp\\Core\\": "src/",
+            "Itp\\Core\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Itp\\Core\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/lightwalkernet/sync.git"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Itp\\Core\\ItpCoreServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require-dev": {
+        "laravel/pint": "^1.32",
+        "orchestra/testbench": "^11.3",
+        "pestphp/pest": "^5.3"
+    }
+}
