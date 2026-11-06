@@ -1,7 +1,9 @@
 <?php
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Schema;
 use Itp\Core\ItpCoreServiceProvider;
+use Itp\Core\Models\UniversalItp;
 
 dataset('shared tables', ['users', 'itps', 'universal_itps', 'wildcards']);
 
@@ -16,6 +18,23 @@ it('gives both ITP tables the same content columns', function () {
 
     expect(Schema::hasColumns('itps', $content))->toBeTrue()
         ->and(Schema::hasColumns('universal_itps', $content))->toBeTrue();
+});
+
+it('adds the short name and preview flag to universal ITPs only', function () {
+    expect(Schema::hasColumns('universal_itps', ['short_name', 'is_preview']))->toBeTrue()
+        ->and(Schema::hasIndex('universal_itps', ['is_preview']))->toBeTrue()
+        ->and(Schema::hasColumn('itps', 'short_name'))->toBeFalse()
+        ->and(Schema::hasColumn('itps', 'is_preview'))->toBeFalse();
+});
+
+it('leaves a universal ITP out of the preview by default', function () {
+    $universal = UniversalItp::factory()->make();
+
+    $universal = UniversalItp::create(Arr::except($universal->getAttributes(), ['short_name', 'is_preview']));
+
+    expect($universal->fresh())
+        ->is_preview->toBeFalse()
+        ->short_name->toBeNull();
 });
 
 it('rolls back and migrates again cleanly', function () {

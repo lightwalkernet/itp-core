@@ -34,8 +34,20 @@ class UniversalItpFactory extends Factory
             'slug' => Str::slug($content['title']).'-'.Str::lower(Str::random(6)),
             'kind' => UniversalItpKind::Universal,
             'sort_order' => null,
+            'short_name' => Str::title(fake()->words(2, true)),
+            'is_preview' => false,
             ...$content,
         ];
+    }
+
+    /**
+     * Indicate that the ITP is playable before the user has signed in.
+     */
+    public function preview(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_preview' => true,
+        ]);
     }
 
     /**

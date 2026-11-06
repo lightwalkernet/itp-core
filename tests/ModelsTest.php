@@ -33,6 +33,24 @@ it('casts the universal ITP kind to its enum', function () {
         ->and(UniversalItp::factory()->base()->create()->fresh()->kind)->toBe(UniversalItpKind::Base);
 });
 
+it('displays the short name, falling back to the title', function (?string $shortName, string $expected) {
+    $universal = UniversalItp::factory()->create(['title' => 'Awaken the Wonder Within', 'short_name' => $shortName]);
+
+    expect($universal->fresh()->display_name)->toBe($expected);
+})->with([
+    'short name set' => ['Awaken Wonder', 'Awaken Wonder'],
+    'no short name' => [null, 'Awaken the Wonder Within'],
+    'blank short name' => ['', 'Awaken the Wonder Within'],
+]);
+
+it('scopes universal ITPs to the preview', function () {
+    $preview = UniversalItp::factory()->preview()->create();
+    UniversalItp::factory()->create();
+
+    expect(UniversalItp::query()->preview()->pluck('id')->all())->toBe([$preview->id])
+        ->and($preview->fresh()->is_preview)->toBeTrue();
+});
+
 it('relates a user to their ITPs', function () {
     $user = User::factory()->create();
     $itp = Itp::factory()->forUser($user)->create();
@@ -62,6 +80,30 @@ it('stamps a sync number on every server-side write', function () {
 
     expect($created)->toBeGreaterThan($itp->user->fresh()->sync_seq)
         ->and($itp->fresh()->sync_seq)->toBeGreaterThan($created);
+});
+
+it('stamps a sync number when a universal ITP\'s short name or preview flag changes', function () {
+    $universal = UniversalItp::factory()->create();
+    $created = $universal->fresh()->sync_seq;
+
+    $universal->update(['short_name' => 'Awaken Wonder', 'is_preview' => true]);
+
+    expect($universal->fresh())
+        ->sync_seq->toBeGreaterThan($created)
+        ->short_name->toBe('Awaken Wonder')
+        ->is_preview->toBeTrue();
+});
+
+it('never marks a universal ITP dirty on the device', function () {
+    $this->useClientRole();
+
+    $universal = UniversalItp::factory()->preview()->create();
+    $universal->update(['short_name' => 'Awaken Wonder', 'is_preview' => false]);
+
+    expect($universal->fresh())
+        ->sync_dirty->toBeFalse()
+        ->sync_rev->toBe(0)
+        ->sync_seq->toBeNull();
 });
 
 it('never marks a pull-only ITP dirty on the device', function () {
